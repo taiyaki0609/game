@@ -1,0 +1,13 @@
+
+{
+  "name": "playpop-game-site",
+  "version": "1.0.0",
+  "description": "カラフルなブラウザゲーム広場",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.21.2"
+  }
+}
