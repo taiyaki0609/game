@@ -1,0 +1,101 @@
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PlayPop Mini Games</title>
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      padding: 24px;
+      font-family: system-ui, sans-serif;
+      color: #fff;
+      background: linear-gradient(135deg, #171642, #30216b);
+      min-height: 100vh;
+    }
+
+    h1 { text-align: center; font-size: 38px; }
+    .subtitle { text-align: center; color: #d8d5ff; }
+
+    .games {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 18px;
+      max-width: 950px;
+      margin: 32px auto;
+    }
+
+    .game {
+      padding: 24px;
+      border-radius: 20px;
+      background: #ffffff12;
+      border: 1px solid #ffffff30;
+      text-align: center;
+    }
+
+    .emoji { font-size: 52px; }
+
+    button {
+      padding: 12px 20px;
+      border: 0;
+      border-radius: 12px;
+      background: #ffe45e;
+      color: #24204d;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    button:hover { transform: translateY(-2px); }
+    #area { max-width: 700px; margin: auto; text-align: center; }
+  </style>
+</head>
+<body>
+  <h1>🎮 PlayPop</h1>
+  <p class="subtitle">お気に入りのミニゲームを見つけよう！</p>
+
+  <div class="games">
+    <section class="game">
+      <div class="emoji">🧱</div>
+      <h2>ブロック崩し</h2>
+      <p>ボールを跳ね返してブロックを壊そう！</p>
+      <button onclick="startGame('breakout')">プレイ</button>
+    </section>
+
+    <section class="game">
+      <div class="emoji">🐍</div>
+      <h2>スネーク</h2>
+      <p>エサを集めて、どんどん長くなろう！</p>
+      <button onclick="startGame('snake')">プレイ</button>
+    </section>
+
+    <section class="game">
+      <div class="emoji">⚡</div>
+      <h2>反射神経ゲーム</h2>
+      <p>合図が出たら、すばやくクリック！</p>
+      <button onclick="startGame('reaction')">プレイ</button>
+    </section>
+  </div>
+
+  <div id="area"></div>
+
+  <script>
+    function startGame(name) {
+      const area = document.getElementById("area");
+
+      if (name === "breakout") {
+        area.innerHTML = '<h2>ブロック崩し</h2><p>次のステップで実装するよ！</p>';
+      } else if (name === "snake") {
+        area.innerHTML = '<h2>スネーク</h2><p>次のステップで実装するよ！</p>';
+      } else {
+        area.innerHTML = '<h2>反射神経ゲーム</h2><p>次のステップで実装するよ！</p>';
+      }
+
+      area.scrollIntoView({ behavior: "smooth" });
+    }
+  </script>
+</body>
+</html>
