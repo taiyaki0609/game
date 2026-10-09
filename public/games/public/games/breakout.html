@@ -1,0 +1,134 @@
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PlayPop - ブロック崩し</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;padding:20px;text-align:center;font-family:system-ui,sans-serif;color:white;background:linear-gradient(135deg,#171642,#30216b)}
+h1{margin:8px}
+.info{display:flex;justify-content:center;gap:24px;font-size:18px;margin:14px}
+canvas{display:block;width:100%;max-width:600px;height:auto;margin:16px auto;background:#101329;border:2px solid #7773ff;border-radius:12px;touch-action:none}
+button{border:0;border-radius:10px;padding:12px 20px;font-weight:bold;font-size:16px;background:#ffe45e;color:#24204d;cursor:pointer}
+p{color:#ddd9ff}
+</style>
+</head>
+<body>
+<h1>🧱 ブロック崩し</h1>
+<p>マウス・指でバーを動かして、すべてのブロックを壊そう！</p>
+<div class="info">
+<span>スコア：<b id="score">0</b></span>
+<span>残り：<b id="lives">3</b></span>
+</div>
+<canvas id="game" width="600" height="420"></canvas>
+<button id="start">ゲームスタート / もう一度</button>
+<p>キーボードの ← → でも操作できるよ。</p>
+<script>
+const canvas=document.getElementById("game");
+const ctx=canvas.getContext("2d");
+const scoreEl=document.getElementById("score");
+const livesEl=document.getElementById("lives");
+const startBtn=document.getElementById("start");
+
+const W=600,H=420;
+let paddle,ball,bricks,score,lives,running,ended,won,keys={};
+
+function reset(){
+  paddle={x:250,y:385,w:100,h:12,speed:7};
+  ball={x:300,y:360,r:8,dx:3,dy:-4};
+  bricks=[];
+  for(let row=0;row<5;row++){
+    for(let col=0;col<9;col++){
+      bricks.push({x:25+col*62,y:35+row*27,w:54,h:17,alive:true,color:["#ff6584","#ffad5e","#ffe45e","#64e8b7","#72a7ff"][row]});
+    }
+  }
+  score=0;lives=3;running=false;ended=false;won=false;
+  scoreEl.textContent=score;
+  livesEl.textContent=lives;
+  draw();
+}
+
+function draw(){
+  ctx.clearRect(0,0,W,H);
+  bricks.forEach(b=>{
+    if(!b.alive)return;
+    ctx.fillStyle=b.color;
+    ctx.beginPath();
+    ctx.roundRect(b.x,b.y,b.w,b.h,4);
+    ctx.fill();
+  });
+  ctx.fillStyle="#ffffff";
+  ctx.beginPath();ctx.arc(ball.x,ball.y,ball.r,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle="#9c8cff";
+  ctx.beginPath();ctx.roundRect(paddle.x,paddle.y,paddle.w,paddle.h,6);ctx.fill();
+
+  if(!running){
+    ctx.fillStyle="#ffffff";
+    ctx.textAlign="center";
+    ctx.font="bold 25px system-ui";
+    ctx.fillText(ended?(won?"🎉 クリア！":"ゲームオーバー"):"スタートボタンを押してね",W/2,230);
+    ctx.font="16px system-ui";
+    if(ended)ctx.fillText("もう一度ボタンで再挑戦！",W/2,260);
+  }
+}
+
+function finish(win){
+  running=false;ended=true;won=win;draw();
+}
+
+function tick(){
+  if(!running)return;
+  if(keys.ArrowLeft)paddle.x-=paddle.speed;
+  if(keys.ArrowRight)paddle.x+=paddle.speed;
+  paddle.x=Math.max(0,Math.min(W-paddle.w,paddle.x));
+
+  ball.x+=ball.dx;ball.y+=ball.dy;
+  if(ball.x-ball.r<0||ball.x+ball.r>W)ball.dx*=-1;
+  if(ball.y-ball.r<0)ball.dy=Math.abs(ball.dy);
+
+  if(ball.dy>0&&ball.y+ball.r>=paddle.y&&ball.y-ball.r<=paddle.y+paddle.h&&ball.x>=paddle.x&&ball.x<=paddle.x+paddle.w){
+    const hit=(ball.x-(paddle.x+paddle.w/2))/(paddle.w/2);
+    ball.dx=hit*5;
+    ball.dy=-Math.max(3,Math.sqrt(25-ball.dx*ball.dx));
+  }
+
+  for(const b of bricks){
+    if(!b.alive)continue;
+    if(ball.x+ball.r>b.x&&ball.x-ball.r<b.x+b.w&&ball.y+ball.r>b.y&&ball.y-ball.r<b.y+b.h){
+      b.alive=false;ball.dy*=-1;score+=10;scoreEl.textContent=score;break;
+    }
+  }
+
+  if(bricks.every(b=>!b.alive)){finish(true);return;}
+  if(ball.y-ball.r>H){
+    lives--;livesEl.textContent=lives;
+    if(lives<=0){finish(false);return;}
+    ball={x:300,y:350,r:8,dx:3,dy:-4};
+  }
+
+  draw();
+  requestAnimationFrame(tick);
+}
+
+function movePaddle(e){
+  const rect=canvas.getBoundingClientRect();
+  const scale=W/rect.width;
+  paddle.x=(e.clientX-rect.left)*scale-paddle.w/2;
+  paddle.x=Math.max(0,Math.min(W-paddle.w,paddle.x));
+  if(!running)draw();
+}
+canvas.addEventListener("pointermove",movePaddle);
+document.addEventListener("keydown",e=>{keys[e.key]=true;if(["ArrowLeft","ArrowRight"].includes(e.key))e.preventDefault();});
+document.addEventListener("keyup",e=>keys[e.key]=false);
+startBtn.addEventListener("click",()=>{
+  if(running)return;
+  reset();
+  running=true;
+  requestAnimationFrame(tick);
+});
+reset();
+</script>
+</body>
+</html>
