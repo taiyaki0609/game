@@ -1,0 +1,135 @@
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PlayPop - ゲーム広場</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,"Noto Sans JP",sans-serif;background:#f5f7ff;color:#252344}
+header{background:linear-gradient(120deg,#7357ff,#ff65a3);color:white;padding:26px 5%;text-align:center}
+header h1{margin:0;font-size:clamp(30px,5vw,48px)}
+header p{margin:8px 0 0}
+main{max-width:1100px;margin:auto;padding:24px 16px}
+.search{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px}
+input,select{padding:13px;border:2px solid #e3e2f5;border-radius:13px;font-size:16px;background:white}
+#search{flex:1;min-width:200px}
+.categories{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:22px}
+.categories button,.play-button,.back{border:0;border-radius:12px;padding:11px 16px;font-size:15px;font-weight:bold;cursor:pointer}
+.categories button{background:white;color:#5144a5;box-shadow:0 2px 8px #20205012}
+.categories button.active{background:#7357ff;color:white}
+h2{margin:18px 0}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:18px}
+.card{background:white;border-radius:20px;overflow:hidden;box-shadow:0 5px 18px #26204b12}
+.art{height:135px;display:grid;place-items:center;font-size:66px;background:linear-gradient(135deg,#ffdf8b,#ff9dc8)}
+.card:nth-child(2) .art{background:linear-gradient(135deg,#8de9ff,#a6a0ff)}
+.card:nth-child(3) .art{background:linear-gradient(135deg,#b5f6c8,#fff18d)}
+.card:nth-child(4) .art{background:linear-gradient(135deg,#ffb4a2,#ffd6a5)}
+.info{padding:15px}
+.info h3{margin:0 0 7px}
+.tag{color:#7668c7;font-size:13px}
+.play-button{width:100%;background:#7357ff;color:white;margin-top:12px}
+.play-button:hover{background:#5a3fe0}
+#player{display:none;background:white;padding:20px;border-radius:20px}
+#gameFrame{width:100%;height:min(70vh,600px);border:0;border-radius:12px;background:#f0f1f7}
+.back{background:#eee9ff;color:#5144a5;margin-bottom:15px}
+.note{color:#6c6b80;font-size:13px;line-height:1.7}
+.empty{grid-column:1/-1;padding:35px;text-align:center;color:#777}
+footer{text-align:center;padding:25px;color:#777;font-size:13px}
+</style>
+</head>
+<body>
+<header>
+<h1>🎮 PlayPop</h1>
+<p>お気に入りのゲームを見つけよう！</p>
+</header>
+<main>
+<section id="catalog">
+<div class="search">
+<input id="search" placeholder="🔍 ゲーム名で検索..." aria-label="ゲーム名で検索">
+<select id="sort" aria-label="並べ替え">
+<option value="default">おすすめ順</option>
+<option value="name">名前順</option>
+</select>
+</div>
+<div class="categories" id="categories"></div>
+<h2 id="listTitle">🌈 ゲーム一覧</h2>
+<div class="grid" id="games"></div>
+<p class="note">※ 外部ゲームは、配信元が埋め込みを許可している場合のみ起動できます。</p>
+</section>
+<section id="player">
+<button class="back" id="back">← ゲーム一覧に戻る</button>
+<h2 id="playingTitle">ゲーム</h2>
+<iframe id="gameFrame" title="ゲーム画面" allow="fullscreen; gamepad" allowfullscreen></iframe>
+<p id="playNote" class="note"></p>
+</section>
+</main>
+<footer>PlayPop · ブラウザゲーム広場</footer>
+<script>
+const games=[
+ {name:"2048",genre:"パズル",emoji:"🔢",description:"数字を合わせて2048を目指そう！",url:"https://play2048.co/"},
+ {name:"HexGL",genre:"レース",emoji:"🏎️",description:"未来のコースを駆け抜けよう！",url:"https://hexgl.bkcore.com/"},
+ {name:"Cookie Clicker",genre:"放置・育成",emoji:"🍪",description:"クッキーを増やしていこう！",url:"https://orteil.dashnet.org/cookieclicker/"},
+ {name:"Google Solitaire",genre:"カード",emoji:"🃏",description:"定番カードゲームに挑戦！",url:"https://www.google.com/logos/fnbx/solitaire/"},
+ {name:"Google Pac-Man",genre:"アクション",emoji:"👾",description:"迷路を進んで遊ぼう！",url:"https://www.google.com/logos/2010/pacman10-i.html"}
+];
+const genres=["すべて",...new Set(games.map(g=>g.genre))];
+let selectedGenre="すべて";
+const categories=document.getElementById("categories");
+const list=document.getElementById("games");
+const search=document.getElementById("search");
+const sort=document.getElementById("sort");
+
+function renderCategories(){
+ categories.innerHTML="";
+ genres.forEach(genre=>{
+  const button=document.createElement("button");
+  button.textContent=genre==="すべて"?"🌈 すべて":genre;
+  button.className=genre===selectedGenre?"active":"";
+  button.onclick=()=>{selectedGenre=genre;renderCategories();renderGames()};
+  categories.appendChild(button);
+ });
+}
+function renderGames(){
+ let filtered=games.filter(g=>
+  g.name.toLowerCase().includes(search.value.trim().toLowerCase())&&
+  (selectedGenre==="すべて"||g.genre===selectedGenre)
+ );
+ if(sort.value==="name")filtered.sort((a,b)=>a.name.localeCompare(b.name));
+ list.innerHTML="";
+ document.getElementById("listTitle").textContent="🌈 ゲーム一覧（"+filtered.length+"）";
+ if(!filtered.length){list.innerHTML='<div class="empty">ゲームが見つかりませんでした。</div>';return}
+ filtered.forEach(game=>{
+  const card=document.createElement("article");
+  card.className="card";
+  const art=document.createElement("div");art.className="art";art.textContent=game.emoji;
+  const info=document.createElement("div");info.className="info";
+  const title=document.createElement("h3");title.textContent=game.name;
+  const tag=document.createElement("div");tag.className="tag";tag.textContent="🎯 "+game.genre;
+  const desc=document.createElement("p");desc.textContent=game.description;
+  const play=document.createElement("button");play.className="play-button";play.textContent="▶ プレイ";
+  play.onclick=()=>openGame(game);
+  info.append(title,tag,desc,play);card.append(art,info);list.appendChild(card);
+ });
+}
+function openGame(game){
+ document.getElementById("catalog").style.display="none";
+ document.getElementById("player").style.display="block";
+ document.getElementById("playingTitle").textContent=game.emoji+" "+game.name;
+ document.getElementById("playNote").textContent="ゲームが表示されない場合、配信元が埋め込みを制限している可能性があります。";
+ document.getElementById("gameFrame").src=game.url;
+ window.scrollTo(0,0);
+}
+document.getElementById("back").onclick=()=>{
+ document.getElementById("gameFrame").src="about:blank";
+ document.getElementById("player").style.display="none";
+ document.getElementById("catalog").style.display="block";
+};
+search.addEventListener("input",renderGames);
+sort.addEventListener("change",renderGames);
+renderCategories();
+renderGames();
+</script>
+</body>
+</html>
